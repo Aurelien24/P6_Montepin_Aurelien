@@ -1,42 +1,17 @@
 const Thing = require('../models/thing');
 
-/*app.put('/api/stuff/:id', (req, res, next) => {
-  Thing.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
-    .then(() => res.status(200).json({ message: 'Objet modifié !'}))
-    .catch(error => res.status(400).json({ error }));
-});
-
-
-tentative pour condensé le code
-exports.addUser = (req, res, next) => {
-  const thing = new Thing({ email: req.body.email, password: req.body.password });
-
-  // thing.save() ??? A retirer ? Changer ?
-  thing.save().then(() => res.status(200).json({ message: 'Requete valable'}))})
-  .catch(error => res.status(400).json({ error }));
-};*/
-
-// mdp a hacher + saler idéalement
+// mdp a hacher + saler idéalement. Ne fonctionne pas du tout !!!
 exports.addUser = (req, res, next) => {
   const thing = new Thing({
-    email: req.body.email,
-    password: req.body.password,
+    //email: req.body.email, ???
+    //password: req.body.password, ???
+    ...req.body
   });
 
   // thing.save() ??? A retirer ?
-  thing.save().then(
-    () => {
-      res.status(201).json({
-        message: 'Requete valable'
-      });
-    }
-  ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
-      });
-    }
-  );
+  thing.save()
+    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
+    .catch(error => res.status(400).json( error ));
 };
 
 exports.login = (req, res, next) => {
@@ -45,21 +20,10 @@ exports.login = (req, res, next) => {
   Thing.findOne({
     email: req.body.email,
     password: req.body.password,
-  }).then(
-    // pas de thing.save(), ont enregistre pas
-    // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    () => {
-      res.status(201).json({
-        message: 'Requete valable'
-      });
-    }
-    ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
-      });
-    }
-  );
+  })
+
+  .then(() => res.status(201).json({ message: 'Requete valable'}))
+  .catch(error => res.status(400).json( error ));
 };
 
 exports.sauces = (req, res, next) => {
@@ -67,65 +31,34 @@ exports.sauces = (req, res, next) => {
   // Recherche toute les sauces
   Thing.find({
     // Hum... Rien ?
-  }).then(
-    // pas de thing.save(), ont enregistre pas
-    // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    () => {
-      res.status(201).json({
-        message: 'Requete valable'
-      });
-    }
-    ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
-      });
-    }
-  );
+  })
+  
+  .then(() => res.status(201).json({ message: 'Requete valable'}))
+  .catch(error => res.status(400).json( error ));
 };
 
 exports.oneSauces = (req, res, next) => {
   // Je recherche 1 sauce donc...
   Thing.findOne({
-    // Hum... Rien ?
-  }).then(
-    // pas de thing.save(), ont enregistre pas
-    // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    () => {
-      res.status(201).json({
-        message: 'Requete valable'
-      });
-    }
-    ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
-      });
-    }
-  );
+    // Nom de la sauce ou peut etre : ...req.body
+  })
+  
+  .then(() => res.status(201).json({ message: 'Requete valable'}))
+  .catch(error => res.status(400).json( error ));
 };
 
 exports.saveSauces = (req, res, next) => {
   // Je save une sauce...
+  // A renommer sauce. Quelque chose pour tout n'aide pas
   Thing.save({
     // n'existe pas dans thing.js a ajouté ? Ailleur ????
     sauce: req.body.sauce,
     image: req.body.image,
-  }).then(
-    // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    // La consol veut une , avec thing.save
-    thing.save() => {
-      res.status(201).json({
-        message: 'Requete valable'
-      });
-    }
-    ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
-      });
-    }
-  );
+    // Ou ...req.body
+  })
+
+  .then(() => res.status(201).json({ message: 'Requete valable'}))
+  .catch(error => res.status(400).json( error ));
 };
 
 exports.majSauces = (req, res, next) => {
@@ -137,21 +70,11 @@ exports.majSauces = (req, res, next) => {
     // ou  ?
 
     files: req.body.sauce.json
-  }).then(
-    // pas de thing.save(), ont enregistre pas
-    // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    thing.save() => {
-      res.status(201).json({
-        message: 'Requete valable'
-      });
-    }
-    ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
-      });
-    }
-  );
+  })
+    // sauce déja mise a jour. Pas besoin de think.save
+    // argument de uptade one pour frontend
+    .then(() => res.status(201).json({ message: 'Requete valable'}))
+    .catch(error => res.status(400).json( error ));
 };
 
 exports.delSauces = (req, res, next) => {
@@ -162,7 +85,7 @@ exports.delSauces = (req, res, next) => {
   }).then(
     // pas de thing.save(), ont enregistre pas
     // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    thing.save() => {
+    /*thing.save() => {
       res.status(201).json({
         message: 'Requete valable'
       });
@@ -172,19 +95,19 @@ exports.delSauces = (req, res, next) => {
       res.status(400).json({
         error: error
       });
-    }
+    }*/
   );
 };
 
 exports.likes = (req, res, next) => {
   // a changer ? Ont change le nombre de like...
   Thing.updateOne({
-    userId: req.body.userId
-    like: req.body.likes
+    userId: req.body.userId,
+    like: req.body.likes,
   }).then(
     // pas de thing.save(), ont enregistre pas
     // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    thing.save() => {
+    /*thing.save() => {
       res.status(201).json({
         message: 'Requete valable'
       });
@@ -194,6 +117,6 @@ exports.likes = (req, res, next) => {
       res.status(400).json({
         error: error
       });
-    }
+    }/*/
   );
 };
