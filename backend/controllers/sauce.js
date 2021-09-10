@@ -1,35 +1,9 @@
-const Thing = require('../models/thing');
-
-// mdp a hacher + saler idéalement. Ne fonctionne pas du tout !!!
-exports.addUser = (req, res, next) => {
-  const thing = new Thing({
-    //email: req.body.email, ???
-    //password: req.body.password, ???
-    ...req.body
-  });
-
-  // thing.save() ??? A retirer ?
-  thing.save()
-    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
-    .catch(error => res.status(400).json( error ));
-};
-
-exports.login = (req, res, next) => {
-
-  // recherche 1 compte
-  Thing.findOne({
-    email: req.body.email,
-    password: req.body.password,
-  })
-
-  .then(() => res.status(201).json({ message: 'Requete valable'}))
-  .catch(error => res.status(400).json( error ));
-};
+const Sauce = require('../models/sauce');
 
 exports.sauces = (req, res, next) => {
 
   // Recherche toute les sauces
-  Thing.find({
+  Sauce.find({
     // Hum... Rien ?
   })
   
@@ -39,7 +13,7 @@ exports.sauces = (req, res, next) => {
 
 exports.oneSauces = (req, res, next) => {
   // Je recherche 1 sauce donc...
-  Thing.findOne({
+  Sauce.findOne({
     // Nom de la sauce ou peut etre : ...req.body
   })
   
@@ -50,20 +24,33 @@ exports.oneSauces = (req, res, next) => {
 exports.saveSauces = (req, res, next) => {
   // Je save une sauce...
   // A renommer sauce. Quelque chose pour tout n'aide pas
-  Thing.save({
-    // n'existe pas dans thing.js a ajouté ? Ailleur ????
-    sauce: req.body.sauce,
-    image: req.body.image,
-    // Ou ...req.body
-  })
 
-  .then(() => res.status(201).json({ message: 'Requete valable'}))
-  .catch(error => res.status(400).json( error ));
+  console.log("Aezaeza", req.body)
+  let sauceData = JSON.parse(req.body.sauce);
+
+  const sauce = new Sauce({
+    //sauce: req.body.sauce,
+    //image: req.body.image,
+
+    userId: sauceData.userId,
+    name: sauceData.name,
+    manufacturer: sauceData.manufacturer,
+    description: sauceData.description,
+    mainPepper: sauceData.mainPepper,
+    imageUrl: "req.file.filename",
+    heat: sauceData.heat,
+    likes: 0,
+    dislikes: 0,
+  });
+
+  sauce.save()
+    .then(() => res.status(201).json({ message: 'Requete valable'}))
+    .catch(error => res.status(400).json( error ));
 };
 
 exports.majSauces = (req, res, next) => {
   // mise a jour d'une sauce
-  Thing.updateOne({
+  Sauce.updateOne({
     sauce: req.body.sauce,
     image: req.body.image,
 
@@ -79,7 +66,7 @@ exports.majSauces = (req, res, next) => {
 
 exports.delSauces = (req, res, next) => {
   // supprime 1 sauces et son id
-  Thing.deleteOne({
+  Sauce.deleteOne({
     // franchement étrange comme ligne... sauceId sort de nul part. _id de "Supprime la sauce avec l'_id fourni."
     _id: req.body.sauceId
   }).then(
@@ -101,7 +88,7 @@ exports.delSauces = (req, res, next) => {
 
 exports.likes = (req, res, next) => {
   // a changer ? Ont change le nombre de like...
-  Thing.updateOne({
+  Sauce.updateOne({
     userId: req.body.userId,
     like: req.body.likes,
   }).then(
