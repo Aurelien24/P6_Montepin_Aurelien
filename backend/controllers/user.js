@@ -1,6 +1,6 @@
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
 
 // mdp a hacher + saler idéalement. Ne fonctionne pas du tout !!!
 exports.addUser = (req, res, next) => {

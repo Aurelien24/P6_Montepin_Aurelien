@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const sauceRoutes = require('./routes/sauceRoutes');
 const userRoutes = require('./routes/userRoutes');
+const path = require('path');
 
 mongoose.connect('mongodb+srv://Aurelien:0000@cluster0.1tt20.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
   { useNewUrlParser: true,
@@ -20,9 +21,10 @@ app.use((req, res, next) => {
   next();
 });
 
-//app.use(express.json());
+app.use(express.json());
 
 app.use('/api/sauces', sauceRoutes);
 app.use('/api/auth', userRoutes);
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 module.exports = app;

@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 
 const stuffCtrl = require('../controllers/user');
-const auth = require('../middleware/auth');
 
 // Utilisateur
 router.post('/signup', stuffCtrl.addUser); // Hachage du mot de passe de l'utilisateur, ajout de l'utilisateur à la base de données

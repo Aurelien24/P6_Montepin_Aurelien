@@ -1,13 +1,11 @@
 const Sauce = require('../models/sauce');
+const jwt = require('jsonwebtoken');
 
 exports.sauces = (req, res, next) => {
-
   // Recherche toute les sauces
-  Sauce.find({
-    // Hum... Rien ?
-  })
+  Sauce.find()
   
-  .then(() => res.status(201).json({ message: 'Requete valable'}))
+  .then((sauces) => res.status(200).json( sauces ))
   .catch(error => res.status(400).json( error ));
 };
 
@@ -22,11 +20,9 @@ exports.oneSauces = (req, res, next) => {
 };
 
 exports.saveSauces = (req, res, next) => {
-  // Je save une sauce...
-  // A renommer sauce. Quelque chose pour tout n'aide pas
 
-  console.log("Aezaeza", req.body)
-  let sauceData = JSON.parse(req.body.sauce);
+  const sauceData = JSON.parse(req.body.sauce);
+  console.log("Aezaeza", req.body.sauce)
 
   const sauce = new Sauce({
     //sauce: req.body.sauce,
@@ -37,7 +33,7 @@ exports.saveSauces = (req, res, next) => {
     manufacturer: sauceData.manufacturer,
     description: sauceData.description,
     mainPepper: sauceData.mainPepper,
-    imageUrl: "req.file.filename",
+    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
     heat: sauceData.heat,
     likes: 0,
     dislikes: 0,
@@ -69,21 +65,9 @@ exports.delSauces = (req, res, next) => {
   Sauce.deleteOne({
     // franchement étrange comme ligne... sauceId sort de nul part. _id de "Supprime la sauce avec l'_id fourni."
     _id: req.body.sauceId
-  }).then(
-    // pas de thing.save(), ont enregistre pas
-    // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    /*thing.save() => {
-      res.status(201).json({
-        message: 'Requete valable'
-      });
-    }
-    ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
-      });
-    }*/
-  );
+  })
+  .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+  .catch(error => res.status(400).json({ error }));
 };
 
 exports.likes = (req, res, next) => {
@@ -91,19 +75,17 @@ exports.likes = (req, res, next) => {
   Sauce.updateOne({
     userId: req.body.userId,
     like: req.body.likes,
-  }).then(
-    // pas de thing.save(), ont enregistre pas
-    // (xxxxx) => {  - Y auras t'il un paramètre ? Normalement oui
-    /*thing.save() => {
-      res.status(201).json({
-        message: 'Requete valable'
-      });
-    }
-    ).catch(
-    (error) => {
-      res.status(400).json({
-        error: error
-      });
-    }/*/
-  );
+  })
+  .then(() => res.status(201).json({ message: 'like ajouté' }))
+  .catch(error => res.status(400).json({ error }));
+};
+
+exports.dislikes = (req, res, next) => {
+  // a changer ? Ont change le nombre de like...
+  Sauce.updateOne({
+    userId: req.body.userId,
+    like: req.body.dislikes,
+  })
+  .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+  .catch(error => res.status(400).json({ error }));
 };
