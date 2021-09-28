@@ -1,3 +1,4 @@
+const sauce = require('../models/sauce');
 const Sauce = require('../models/sauce');
 
 exports.sauces = (req, res, next) => {
@@ -9,15 +10,9 @@ exports.sauces = (req, res, next) => {
 };
 
 exports.oneSauces = (req, res, next) => {
-  // Je recherche 1 sauce donc...  _id: req.body.id 
-  console.log("bubu", req.body)
-  console.log("bubu2", req.body.id)
 
-  Sauce.findOne({_id: req.body.id})
+  Sauce.findOne({_id: req.params.id})
   
-  console.log("bubu", res.body)
-  console.log("bubu2", res.body.id)
-
   //sauce en argument ?
   .then((sauce) => res.status(200).json(sauce))    //console.log('bubu', res.status(200).json(sauce))
   .catch(error => res.status(400).json( error ));
@@ -49,15 +44,18 @@ exports.saveSauces = (req, res, next) => {
 
 exports.majSauces = (req, res, next) => {
   // mise a jour d'une sauce. NE PREND PROBABLEMENT PAS L'IMAGE.  { ...req.body, _id: req.params.id } a garder ? Retirer protocole image ?
-  Sauce.findOne({_id: req.body.id})
-  .then((sauce) => Sauce.updateOne({ /*_id: req.body.id}, { ...req.body, _id: req.params.id }*/...req.body, imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`})
+  /*
+  Sauce.findOne({_id: req.params.id})
+  .then((sauce) => Sauce.updateOne({ /*_id: req.body.id}, { ...req.body, _id: req.params.id }...req.body, imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`})
     .then(() => res.status(200).json({ message: 'Sauce mise a jour'}))
     .catch(error => res.status(400).json( error )))
 
-  .catch(error => res.status(500).json( error ));
+  .catch(error => res.status(500).json( error ));*/
 
   // OU : ???
-  Sauce.updateOne({_id: req.body.id}, { ...req.body, _id: req.params.id })
+  
+  
+  Sauce.updateOne({_id: req.params.id}, { ...req.body, _id: req.params.id })
     .then(() => res.status(200).json({ message: 'Sauce mise a jour'}))
     .catch(error => res.status(400).json( error ));
 };
@@ -65,62 +63,123 @@ exports.majSauces = (req, res, next) => {
 exports.delSauces = (req, res, next) => {
   // supprime 1 sauces et son id
 
-  Sauce.deleteOne({_id: req.body.id})
+  Sauce.deleteOne({_id: req.params.id})
 
   .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
   .catch(error => res.status(400).json({ error }));
 };
 
 exports.likes = (req, res, next) => {
-  // 1-> regarder si l'utilisateur a liker la sauce précédament.(findOne)
-  // 2-> Si non, mettre son like.
-  // 3-> si oui, changer le like. (update)
-  // 4-> Incrémenter le like au changement
 
-  // like = 1 ? = True ? Si true +1 like ?
-
-  // Sauce ? Pas like ? Crée une nouvelle table ?
-  Sauce.findOne({
-    userId: req.body.userId,
-    sauceId: req.body.sauceId,
-    dislikeOrLike: req.body.like
-  })
-
-  if (sauce.like == 1) {
-    Sauce.updateOne({
-      dislikeOrLike: sauceData.like
-    })
-    .then(() => res.status(200).json({ message: 'liké' }))
-    .catch(error => res.status(400).json({ error }));
-  } if (sauce.like == -1){
-    Sauce.updateOne({
-      dislikeOrLike: sauceData.like
-    })
-    .then(() => res.status(200).json({ message: 'disliké' }))
-    .catch(error => res.status(400).json({ error }));
-  }else{
-    Sauce.updateOne({
-      dislikeOrLike: sauceData.like
-    })
-    .then(() => res.status(200).json({ message: 'like/dislike retirer' }))
-    .catch(error => res.status(400).json({ error }));
-  }
-
-  let like = req.body.like;
-
-  // Autre facons potentiel (potentiellement plus stable)
-
-  Sauce.findOne({
-    userId: req.body.userId,
-    sauceId: req.body.sauceId,
-    dislikeOrLike: req.body.like
-  })
-  .then(() => res.status(200).json({ message : "donnée obtenu"}))
-  .catch(() => res.status(200).json({ error : error }));
+  //console.log(req.body.userId);
+  //console.log(req.body.like);
 
   // OldLike ne seras pas là
-  let oldLike = res.body.like
-  let likes = sauce.likes
+  // let oldLike = res.body.like
+  // let likes = sauce.likes*/
+
+
+  Sauce.findOne({_id:req.params.id})
+  .then((sauce) => {
+
+    let userId = req.body.userId;
+
+    let like = req.body.like;
+    let newLikes = sauce.likes;
+    let newDislikes = sauce.dislikes;
+    let userLiked = sauce.userLiked;
+    //let newuserLiked = userLiked.push(userId);
+    /* Utiliser findOne pour savoir si ont a liké?
+    sauce.findOne({usersLiked:req.params.id})
+    .then(() => res.status(200).json({ message : "déjà liké"}))
+    .catch(() => res.status(200).json({ error : error }))*/
+
+
+    // Si l'utilisateur a déjà liké
+    if ( 1 == 1 ) {
+
+      console.log("Déjà liké")
+      
+      if(like === 0){
+
+        newLikes --
+        console.log("like = 1", sauce.likes, newLikes)
+        Sauce.updateOne({_id:req.params.id}, {likes: newLikes})
+        .then(() => res.status(200).json({ message : "donnée obtenu"}))
+        .catch(() => res.status(200).json({ error : error }))
+    
+        // Si like != 0 alors ont plante, c'est pas normal
+      }else{
+        return;
+      }
+    
+      // Si l'utisateur a disliké
+    }else if ( 1 == 2 ) {
+
+      if(like === 0){
+
+        newDislikes ++
+        console.log("like = 1", sauce.likes, newLikes)
+        Sauce.updateOne({_id:req.params.id}, {dislikes: newDislikes})
+        .then(() => res.status(200).json({ message : "donnée obtenu"}))
+        .catch(() => res.status(200).json({ error : error }))
+    
+        // Si like != 0 alors ont plante, c'est pas normal
+      }else{
+        return;
+      }
+
+      // sinon...
+    }else{
+
+      if(like === 1){
+        newLikes ++
+        console.log("like = 1", sauce.likes, newLikes)
+        Sauce.updateOne({_id:req.params.id}, {likes: newLikes, $push: {userLiked: userId}} 
+          
+          //{$push: {userLiked: userId}, $inc: {likes: +1}}
+          //{likes: newLikes}
+          //, {userLiked: newuserLiked}
+          //, {userLiked.push(userId)}
+          
+        )
+        .then(() => res.status(200).json({ message : "donnée obtenu"}))
+        .catch(() => res.status(200).json({ error : error }))
+    
+      }else if (like === -1){
+
+        newDislikes ++
+        Sauce.updateOne({_id:req.params.id}, {dislikes: newDislikes})
+        .then(() => res.status(200).json({ message : "donnée obtenu"}))
+        .catch(() => res.status(200).json({ error : error }))
+    
+        // Si like != 1 ou 2 alors ont plante, c'est pas normal
+      }else{
+        return;
+      }
+    }
+  })
+  .catch(() => res.status(200).json({ error : error }))
+
+ // console.log(sauce)
+ // let sauce = JSON.parse(sauce);
+
+  
+ // 
+
+ //
+
+  
+
+  
+  
+  
+  console.log(req.params.id);
+  
+  /*
+
+  let like = req.body.like;
+  let oldLike = 
 
   if(oldLike != null){
     if(oldLike === 1){
@@ -168,7 +227,7 @@ exports.likes = (req, res, next) => {
           .then(() => res.status(200).json({ message : "like ajouter"}))
           .catch(() => res.status(400).json({ error : error}));
     }
-  }
+  }*/
 };
 
 /* UNE SEUL FONCTION LIKE/DISLIKE !!!!
