@@ -43,41 +43,45 @@ exports.saveSauces = (req, res, next) => {
 };
 
 exports.majSauces = (req, res, next) => {
-  // mise a jour d'une sauce. NE PREND PROBABLEMENT PAS L'IMAGE.  { ...req.body, _id: req.params.id } a garder ? Retirer protocole image ?
-  /*
-  Sauce.findOne({_id: req.params.id})
-  .then((sauce) => Sauce.updateOne({ /*_id: req.body.id}, { ...req.body, _id: req.params.id }...req.body, imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`})
-    .then(() => res.status(200).json({ message: 'Sauce mise a jour'}))
-    .catch(error => res.status(400).json( error )))
 
-  .catch(error => res.status(500).json( error ));*/
+  // y as t'il une modification de l'image
+  if (req.body.heat <= 10){
 
-  // OU : ???
-  
-  
-  Sauce.updateOne({_id: req.params.id}, { ...req.body, _id: req.params.id })
-    .then(() => res.status(200).json({ message: 'Sauce mise a jour'}))
-    .catch(error => res.status(400).json( error ));
+    console.log ("Pas de modification d'image")
+
+    // Vérification d'autorisation -> sauce.userId = userId utilisateur ?
+    // Demander une modification ave le mauvais toket et userId seras bloquer. Une 200 seras cependant renvoyé
+    Sauce.updateOne({$and: [{_id: req.params.id, userId: req.body.userId}]}, { ...req.body, _id: req.params.id })
+      .then(() => res.status(200).json({ message: 'Sauce mise a jour...'}))
+      .catch(error => res.status(400).json( error ));
+
+  } else if (req.body.heat == undefined) {
+
+    const sauceData = JSON.parse(req.body.sauce);
+    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+
+    console.log ("modification d'image")
+    Sauce.updateOne({$and: [{_id: req.params.id, userId: req.body.userId}]}, { ...sauceData, _id: req.params.id, imageUrl: imageUrl })
+      .then(() => res.status(200).json({ message: 'Sauce mise a jour'}))
+      .catch(error => res.status(400).json( error ));
+  }
 };
 
 exports.delSauces = (req, res, next) => {
   // supprime 1 sauces et son id
+  const jwt = require('jsonwebtoken');
 
-  Sauce.deleteOne({_id: req.params.id})
+  const token = req.headers.authorization.split(' ')[1];
+  const decodedToken = jwt.verify(token, 'Mon_TOKEN_developpement');
+  const userId = decodedToken.userId;
+
+  Sauce.deleteOne({$and: [{_id: req.params.id, userId: userId}]})
 
   .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
   .catch(error => res.status(400).json({ error }));
 };
 
 exports.likes = (req, res, next) => {
-
-  //console.log(req.body.userId);
-  //console.log(req.body.like);
-
-  // OldLike ne seras pas là
-  // let oldLike = res.body.like
-  // let likes = sauce.likes*/
-
 
   Sauce.findOne({_id:req.params.id})
   .then((sauce) => {
@@ -87,24 +91,19 @@ exports.likes = (req, res, next) => {
     let like = req.body.like;
     let newLikes = sauce.likes;
     let newDislikes = sauce.dislikes;
-    let userLiked = sauce.userLiked;
-    //let newuserLiked = userLiked.push(userId);
-    /* Utiliser findOne pour savoir si ont a liké?
-    sauce.findOne({usersLiked:req.params.id})
-    .then(() => res.status(200).json({ message : "déjà liké"}))
-    .catch(() => res.status(200).json({ error : error }))*/
 
+    console.log(sauce.usersLiked)
 
     // Si l'utilisateur a déjà liké
-    if ( 1 == 1 ) {
+    if ( sauce.usersLiked.includes(userId) ) {
 
       console.log("Déjà liké")
       
       if(like === 0){
 
         newLikes --
-        console.log("like = 1", sauce.likes, newLikes)
-        Sauce.updateOne({_id:req.params.id}, {likes: newLikes})
+        console.log("like = 0", sauce.likes, newLikes)
+        Sauce.updateOne({_id:req.params.id}, {$inc: {likes: -1}, $pull: {usersLiked: userId}})
         .then(() => res.status(200).json({ message : "donnée obtenu"}))
         .catch(() => res.status(200).json({ error : error }))
     
@@ -114,42 +113,39 @@ exports.likes = (req, res, next) => {
       }
     
       // Si l'utisateur a disliké
-    }else if ( 1 == 2 ) {
+    }else if ( sauce.usersDisliked.includes(userId) ) {
 
-      if(like === 0){
+        if(like === 0){
 
-        newDislikes ++
-        console.log("like = 1", sauce.likes, newLikes)
-        Sauce.updateOne({_id:req.params.id}, {dislikes: newDislikes})
-        .then(() => res.status(200).json({ message : "donnée obtenu"}))
-        .catch(() => res.status(200).json({ error : error }))
-    
-        // Si like != 0 alors ont plante, c'est pas normal
-      }else{
-        return;
-      }
+          newDislikes ++
+          console.log("Dislike = 1", sauce.dislikes, newDislikes)
+          Sauce.updateOne({_id:req.params.id}, {$inc: {dislikes: -1}, $pull: {usersDisliked: userId}})
+          .then(() => res.status(200).json({ message : "donnée obtenu"}))
+          .catch(() => res.status(200).json({ error : error }))
+      
+          // Si dislike != 0 alors ont plante, c'est pas normal
+        }else{
+          return;
+        }
 
-      // sinon...
+      // sinon... L'utilisateur n'as ni like ni dislike
     }else{
 
+      // On ajoute un like
       if(like === 1){
         newLikes ++
-        console.log("like = 1", sauce.likes, newLikes)
-        Sauce.updateOne({_id:req.params.id}, {likes: newLikes, $push: {userLiked: userId}} 
-          
-          //{$push: {userLiked: userId}, $inc: {likes: +1}}
-          //{likes: newLikes}
-          //, {userLiked: newuserLiked}
-          //, {userLiked.push(userId)}
+        console.log("like = 1", sauce.likes, "Utilisateur ajouté")
+        Sauce.updateOne({_id:req.params.id}, {$inc: {likes: +1}, $push: {usersLiked: userId}}  // $pull -> retirer l'id
           
         )
         .then(() => res.status(200).json({ message : "donnée obtenu"}))
         .catch(() => res.status(200).json({ error : error }))
     
+      // On ajoute un dislike
       }else if (like === -1){
 
         newDislikes ++
-        Sauce.updateOne({_id:req.params.id}, {dislikes: newDislikes})
+        Sauce.updateOne({_id:req.params.id}, {$inc: {dislikes: +1}, $push: {usersDisliked: userId}})
         .then(() => res.status(200).json({ message : "donnée obtenu"}))
         .catch(() => res.status(200).json({ error : error }))
     
@@ -160,84 +156,4 @@ exports.likes = (req, res, next) => {
     }
   })
   .catch(() => res.status(200).json({ error : error }))
-
- // console.log(sauce)
- // let sauce = JSON.parse(sauce);
-
-  
- // 
-
- //
-
-  
-
-  
-  
-  
-  console.log(req.params.id);
-  
-  /*
-
-  let like = req.body.like;
-  let oldLike = 
-
-  if(oldLike != null){
-    if(oldLike === 1){
-        if(like === -1){
-          // Comment accéder a like et dislikes ?
-          Sauce.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id }, {dislikes: +1}, {likes: -1})
-            .then(() => res.status(200).json({ message : "dislike ajouter, like retirer"}))
-            .catch(() => res.status(400).json({ error : error}));
-
-        }else if(like === 0){
-          // Mettre un update avec like =0 ? Rajouter alors 3ème possibilité de oldlike au code
-          Sauce.deleteOne({ _id: req.params.id }, { ...req.body, _id: req.params.id }, {likes: -1})
-            .then(() => res.status(200).json({ message : "like retirer"}))
-            .catch(() => res.status(400).json({ error : error}));
-
-        }else{
-          return;
-        }
-    }else if(oldLike === -1){
-      if(like === 1){
-        Sauce.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id }, {dislikes: -1}, {likes: +1})
-            .then(() => res.status(200).json({ message : "like ajouter, dislike retirer"}))
-            .catch(() => res.status(400).json({ error : error}));
-
-      }else if(like === 0){
-        Sauce.deleteOne({ _id: req.params.id }, { ...req.body, _id: req.params.id }, {dislikes: -1})
-            .then(() => res.status(200).json({ message : "dislike retirer"}))
-            .catch(() => res.status(400).json({ error : error}));
-
-      }else{
-        return;
-      }
-    }
-  }else{
-    // Pas d'ancien like/dislike
-
-    if(like === -1){
-      // Comment accéder a like et dislikes ?
-      Sauce.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id }, { dislikes: +1 })
-        .then(() => res.status(200).json({ message : "dislike ajouter"}))
-        .catch(() => res.status(400).json({ error : error}));
-
-    }else if(like === 1){
-      Sauce.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id }, {likes: +1})
-          .then(() => res.status(200).json({ message : "like ajouter"}))
-          .catch(() => res.status(400).json({ error : error}));
-    }
-  }*/
 };
-
-/* UNE SEUL FONCTION LIKE/DISLIKE !!!!
-exports.dislikes = (req, res, next) => {
-  // a changer ? Ont change le nombre de like...
-  Sauce.updateOne({
-    userId: req.body.userId,
-    dislike: req.body.dislikes,
-    sauceId: req.params.id
-  })
-  .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
-  .catch(error => res.status(400).json({ error }));
-};*/

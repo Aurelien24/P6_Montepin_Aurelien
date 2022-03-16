@@ -5,10 +5,10 @@ module.exports = (req, res, next) =>  {
         const str = req.body.password;
 
     
-        if (str.match( /[0-9]/g) && 
-            str.match( /[A-Z]/g) && 
+        if (str.match(/[0-9]/g) && 
+            str.match(/[A-Z]/g) && 
             str.match(/[a-z]/g) && 
-            str.match( /[^a-zA-Z\d]/g) &&
+            //str.match(/[^a-zA-Z\d]/g) &&
             str.length >= 12) {
                 console.log("Mdp bon")
                 next();
