@@ -1,6 +1,8 @@
 const sauce = require('../models/sauce');
 const Sauce = require('../models/sauce');
 
+const jwt = require('jsonwebtoken');
+
 exports.sauces = (req, res, next) => {
   // Recherche toute les sauces
   Sauce.find()
@@ -20,6 +22,10 @@ exports.oneSauces = (req, res, next) => {
 
 exports.saveSauces = (req, res, next) => {
 
+  const token = req.headers.authorization.split(' ')[1];
+  const decodedToken = jwt.verify(token, 'Mon_TOKEN_developpement');
+  const userId = decodedToken.userId;
+
   const sauceData = JSON.parse(req.body.sauce);
 
   const sauce = new Sauce({
@@ -37,9 +43,12 @@ exports.saveSauces = (req, res, next) => {
     dislikes: 0,
   });
 
-  sauce.save()
-    .then(() => res.status(200).json({ message: 'Sauce sauvegarder'}))
-    .catch(error => res.status(400).json( error ));
+  // Comme pour like
+  if(userId == sauce.userId){
+    sauce.save()
+      .then(() => res.status(200).json({ message: 'Sauce sauvegarder'}))
+      .catch(error => res.status(400).json( error ));
+  }
 };
 
 exports.majSauces = (req, res, next) => {
@@ -61,7 +70,7 @@ exports.majSauces = (req, res, next) => {
     const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
 
     console.log ("modification d'image")
-    Sauce.updateOne({$and: [{_id: req.params.id, userId: req.body.userId}]}, { ...sauceData, _id: req.params.id, imageUrl: imageUrl })
+    Sauce.updateOne({$and: [{_id: req.params.id, userId: sauceData.userId}]}, { ...sauceData, _id: req.params.id, imageUrl: imageUrl })
       .then(() => res.status(200).json({ message: 'Sauce mise a jour'}))
       .catch(error => res.status(400).json( error ));
   }
@@ -69,7 +78,6 @@ exports.majSauces = (req, res, next) => {
 
 exports.delSauces = (req, res, next) => {
   // supprime 1 sauces et son id
-  const jwt = require('jsonwebtoken');
 
   const token = req.headers.authorization.split(' ')[1];
   const decodedToken = jwt.verify(token, 'Mon_TOKEN_developpement');
@@ -83,77 +91,85 @@ exports.delSauces = (req, res, next) => {
 
 exports.likes = (req, res, next) => {
 
-  Sauce.findOne({_id:req.params.id})
-  .then((sauce) => {
+  const token = req.headers.authorization.split(' ')[1];
+  const decodedToken = jwt.verify(token, 'Mon_TOKEN_developpement');
+  const userId = decodedToken.userId;
 
-    let userId = req.body.userId;
+  // vérifie la conconrdence du token et de l'userID
+  if(userId == req.body.userId){
 
-    let like = req.body.like;
-    let newLikes = sauce.likes;
-    let newDislikes = sauce.dislikes;
+    Sauce.findOne({_id:req.params.id})
+    .then((sauce) => {
 
-    console.log(sauce.usersLiked)
+      let userId = req.body.userId;
 
-    // Si l'utilisateur a déjà liké
-    if ( sauce.usersLiked.includes(userId) ) {
+      let like = req.body.like;
+      let newLikes = sauce.likes;
+      let newDislikes = sauce.dislikes;
 
-      console.log("Déjà liké")
-      
-      if(like === 0){
+      console.log(sauce.usersLiked)
 
-        newLikes --
-        console.log("like = 0", sauce.likes, newLikes)
-        Sauce.updateOne({_id:req.params.id}, {$inc: {likes: -1}, $pull: {usersLiked: userId}})
-        .then(() => res.status(200).json({ message : "donnée obtenu"}))
-        .catch(() => res.status(200).json({ error : error }))
-    
-        // Si like != 0 alors ont plante, c'est pas normal
-      }else{
-        return;
-      }
-    
-      // Si l'utisateur a disliké
-    }else if ( sauce.usersDisliked.includes(userId) ) {
+      // Si l'utilisateur a déjà liké
+      if ( sauce.usersLiked.includes(userId) ) {
 
+        console.log("Déjà liké")
+        
         if(like === 0){
 
-          newDislikes ++
-          console.log("Dislike = 1", sauce.dislikes, newDislikes)
-          Sauce.updateOne({_id:req.params.id}, {$inc: {dislikes: -1}, $pull: {usersDisliked: userId}})
+          newLikes --
+          console.log("like = 0", sauce.likes, newLikes)
+          Sauce.updateOne({_id:req.params.id}, {$inc: {likes: -1}, $pull: {usersLiked: userId}})
           .then(() => res.status(200).json({ message : "donnée obtenu"}))
           .catch(() => res.status(200).json({ error : error }))
       
-          // Si dislike != 0 alors ont plante, c'est pas normal
+          // Si like != 0 alors ont plante, c'est pas normal
         }else{
           return;
         }
+      
+        // Si l'utisateur a disliké
+      }else if ( sauce.usersDisliked.includes(userId) ) {
 
-      // sinon... L'utilisateur n'as ni like ni dislike
-    }else{
+          if(like === 0){
 
-      // On ajoute un like
-      if(like === 1){
-        newLikes ++
-        console.log("like = 1", sauce.likes, "Utilisateur ajouté")
-        Sauce.updateOne({_id:req.params.id}, {$inc: {likes: +1}, $push: {usersLiked: userId}}  // $pull -> retirer l'id
-          
-        )
-        .then(() => res.status(200).json({ message : "donnée obtenu"}))
-        .catch(() => res.status(200).json({ error : error }))
-    
-      // On ajoute un dislike
-      }else if (like === -1){
+            newDislikes ++
+            console.log("Dislike = 1", sauce.dislikes, newDislikes)
+            Sauce.updateOne({_id:req.params.id}, {$inc: {dislikes: -1}, $pull: {usersDisliked: userId}})
+            .then(() => res.status(200).json({ message : "donnée obtenu"}))
+            .catch(() => res.status(200).json({ error : error }))
+        
+            // Si dislike != 0 alors ont plante, c'est pas normal
+          }else{
+            return;
+          }
 
-        newDislikes ++
-        Sauce.updateOne({_id:req.params.id}, {$inc: {dislikes: +1}, $push: {usersDisliked: userId}})
-        .then(() => res.status(200).json({ message : "donnée obtenu"}))
-        .catch(() => res.status(200).json({ error : error }))
-    
-        // Si like != 1 ou 2 alors ont plante, c'est pas normal
+        // sinon... L'utilisateur n'as ni like ni dislike
       }else{
-        return;
+
+        // On ajoute un like
+        if(like === 1){
+          newLikes ++
+          console.log("like = 1", sauce.likes, "Utilisateur ajouté")
+          Sauce.updateOne({_id:req.params.id}, {$inc: {likes: +1}, $push: {usersLiked: userId}}  // $pull -> retirer l'id
+            
+          )
+          .then(() => res.status(200).json({ message : "donnée obtenu"}))
+          .catch(() => res.status(200).json({ error : error }))
+      
+        // On ajoute un dislike
+        }else if (like === -1){
+
+          newDislikes ++
+          Sauce.updateOne({_id:req.params.id}, {$inc: {dislikes: +1}, $push: {usersDisliked: userId}})
+          .then(() => res.status(200).json({ message : "donnée obtenu"}))
+          .catch(() => res.status(200).json({ error : error }))
+      
+          // Si like != 1 ou 2 alors ont plante, c'est pas normal
+        }else{
+          return;
+        }
       }
-    }
-  })
-  .catch(() => res.status(200).json({ error : error }))
+    })
+    .catch(() => res.status(200).json({ error : error }))
+  }
 };

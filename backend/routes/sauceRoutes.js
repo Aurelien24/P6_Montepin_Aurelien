@@ -7,7 +7,6 @@ const stuffCtrl = require('../controllers/sauce');
 // Résultat : possibilisé de modifier les sauces des autre via postman avec son token si ont as retirer l'userId de la demande
 // Auth vérifie donc uniquement la validité du token.
 const auth = require('../middleware/auth');
-const auth2 = require('../middleware/auth2');
 
 const multer = require('../middleware/multer-config');
 
