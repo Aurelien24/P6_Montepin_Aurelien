@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const uniqueValidator = require('mongoose-unique-validator');
+// plugin pour avoir de meilleur erreur que celle de base
+// const uniqueValidator = require('mongoose-unique-validator');
 
 // donne un schéma de base pour se simplifier la vie. TOUT les paramètre Data Models y son (a séparer ?)
 const sauceModel = mongoose.Schema({
@@ -17,6 +18,6 @@ const sauceModel = mongoose.Schema({
   usersLiked: { type: Array, required: false },
   usersDisliked: { type: Array, required: false }
 });
-sauceModel.plugin(uniqueValidator);
+//sauceModel.plugin(uniqueValidator);
 
 module.exports = mongoose.model('Sauce', sauceModel);

@@ -38,7 +38,7 @@ module.exports = (req, res, next) => {
         } else {
           console.log("Il y as une image mais les deux userId ne corresponde pas")
           res.status(401).json({
-            error: error
+            message: "Action non autorisé"
         });
         }
       }
@@ -55,7 +55,7 @@ module.exports = (req, res, next) => {
   
           console.log("req.body.userId !== userId")
           res.status(401).json({
-              error: error
+            message: "Action non autorisé"
           });
       }
     } 
@@ -63,54 +63,7 @@ module.exports = (req, res, next) => {
   
     console.log("try echec")
     res.status(401).json({
-        error: error
+      message: "Erreur interne, veuillez réessayer dans quelque instant"
     });
   }
-
-  /*
-
-  try {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = jwt.verify(token, 'Mon_TOKEN_developpement');
-    const userId = decodedToken.userId;
-    console.log(userId)
-    console.log("req.body.userId = " + req.body.userId)
-
-    /*if (req.body.userId == undefined) {
-
-    }else 
-    
-    if (req.body.userId && req.body.userId !== userId) {
-      throw 'Invalid user ID';
-    } else {
-      next();
-    }
-  } catch (error){
-    res.status(401).json({
-      error: error
-    });
-  }
-
-/*try {
-  const token = req.headers.authorization.split(' ')[1];
-  const decodedToken = jwt.verify(token, 'Mon_TOKEN_developpement');
-  const userId = decodedToken.userId;
-
-  if (token) {
-    jwt.verify(token, 'Mon_TOKEN_developpement' req, res) => {
-      console.log("valable")
-    }
-  }
-
-  if (req.body.userId && req.body.userId !== userId) {
-    throw 'Invalid user ID';
-  } else {
-    next();
-  }
-} catch (error){
-  res.status(401).json({
-    error: error
-  });
-} */
-
 };

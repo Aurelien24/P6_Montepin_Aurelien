@@ -6,6 +6,7 @@ const MIME_TYPES = {
     'image/png': 'png'
   };
   
+  // fait se stoker les images dans images et change le nom de cette dernière avec la data pour des nom unique
   const storage = multer.diskStorage({
     destination: (req, file, callback) => {
       callback(null, 'images');

@@ -4,7 +4,7 @@ module.exports = (req, res, next) =>  {
 
         const str = req.body.password;
 
-    
+        // 1 chiffre, 1 majuscule, 1 minuscule et 12 character
         if (str.match(/[0-9]/g) && 
             str.match(/[A-Z]/g) && 
             str.match(/[a-z]/g) && 
@@ -16,14 +16,14 @@ module.exports = (req, res, next) =>  {
         } else {
             console.log("Mdp erreur")
             res.status(401).json({
-                error: error
-              });
+              message: "Votre mot de passe doit avoir au moin un chiffre, une majuscule, une minuscule et 12 character"
+            });
         }
 
       } catch (error){
         console.log("Mdp try echec")
         res.status(401).json({
-          error: error
+          message: "Erreur interne, veuillez réessayer dans quelque instant"
         });
       }
 }

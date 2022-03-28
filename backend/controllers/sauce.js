@@ -14,10 +14,8 @@ exports.sauces = (req, res, next) => {
 exports.oneSauces = (req, res, next) => {
 
   Sauce.findOne({_id: req.params.id})
-  
-  //sauce en argument ?
-  .then((sauce) => res.status(200).json(sauce))    //console.log('bubu', res.status(200).json(sauce))
-  .catch(error => res.status(400).json( error ));
+    .then((sauce) => res.status(200).json(sauce))
+    .catch(error => res.status(400).json( error ));
 };
 
 exports.saveSauces = (req, res, next) => {
@@ -59,7 +57,7 @@ exports.majSauces = (req, res, next) => {
     console.log ("Pas de modification d'image")
 
     // Vérification d'autorisation -> sauce.userId = userId utilisateur ?
-    // Demander une modification ave le mauvais toket et userId seras bloquer. Une 200 seras cependant renvoyé
+    // Demander une modification ave le mauvais toket et userId seras bloquer. Une 200 seras cependant renvoyé. Ce genre de cas peut arriver suite a un utilisateur utilisent postman
     Sauce.updateOne({$and: [{_id: req.params.id, userId: req.body.userId}]}, { ...req.body, _id: req.params.id })
       .then(() => res.status(200).json({ message: 'Sauce mise a jour...'}))
       .catch(error => res.status(400).json( error ));

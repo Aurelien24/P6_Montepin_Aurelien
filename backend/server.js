@@ -1,14 +1,6 @@
-/* Donc non sécurisé (https)
-const http = require('http');
+require('dotenv').config()
 
-// Requette a node
-const server = http.createServer((req, res) => {
-    res.end('Voilà la réponse du serveur !');
-});
-
-// donne le port server  || = ou
-server.listen(process.env.PORT || 3000);*/
-
+// Donc non sécurisé (https)
 const http = require('http');
 const app = require('./app');
 
@@ -25,7 +17,8 @@ const normalizePort = val => {
   return false;
 };
 
-const port = normalizePort(process.env.PORT || '3000');
+// prend le port du fichier .env ou, le port 3000 si non renseigner
+const port = normalizePort(process.env.APP_PORT || '3000');
 app.set('port', port);
 
 // recherche les différentes erreurs et les gère de manière appropriée. Elle est ensuite enregistrée dans le serveur
@@ -49,6 +42,7 @@ const errorHandler = error => {
   }
 };
 
+// Requette a node
 const server = http.createServer(app);
 
 server.on('error', errorHandler);
